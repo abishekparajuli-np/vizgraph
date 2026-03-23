@@ -1,10 +1,4 @@
-#include<SFML/Graphics.hpp>
-#include"linegraph.hpp"
-#include"piechart.hpp"
-#include"donutchart.hpp"
-#include "bargraph.hpp"
-#include "histogram.hpp"
-#include "scatterplot.hpp"
+#include "vizgraph.hpp"
 #include <cstdlib>
 #include <ctime>
 #include<string>
@@ -16,41 +10,42 @@ int main(){
     sf::Sprite sprite(texture);
     sf::RenderTexture tx({800,600});
 
-    // --- linegraph data ---
+    // linegraph data
     int x[]={1,2,3,4,5,6,7,8,9};
     int y[]={1,4,9,16,25,36,49,64,81};
+    // bargraph data
+    int barValues[]        = {340, 210, 480, 155, 390, 270};
+    std::string barLabels[] = {"Product A", "Product B", "Product C",
+                               "Product D", "Product E", "Product F"};
+    int barSize = sizeof(barValues) / sizeof(int);
 
-    // --- scatterplot data ---
-    srand(time(NULL));
+    // piechart data
+    int pieValues[]        = {65, 19, 4, 3, 9, 8};
+    std::string pieLabels[] = {"Chrome", "Safari", "Edge", "Firefox","Brave", "Other"};
+    int pieSize = sizeof(pieValues) / sizeof(int);
+
+    // scatterplot data
+      srand(time(NULL));
     int Sx[60], Sy[60];
     for (int i = 0; i < 60; i++) {
         Sx[i] = rand() % 100;
         Sy[i] = rand() % 100;
     }
 
-    // --- pie / donut data ---
-    // Wide spread: one dominant slice, two mid, two tiny
-    int values[] = {42, 28, 15, 10, 5};
-    std::string labels[] = {"A", "B", "C", "D", "E"};
-    int sampleSize = sizeof(values) / sizeof(int);
+    // donuntchart data
+    int donutValues[]        = {32, 27, 18, 13, 10, 30};
+    std::string donutLabels[] = {"Industry", "Transport", "Residential",
+                                 "Commercial","Management" ,"Other"};
+    int donutSize = sizeof(donutValues) / sizeof(int);
 
-    // --- histogram data ---
-    // Perfect symmetric bell curve
-int counts[] = {210, 980, 154, 105, 580, 310, 150};
-std::string binLabels[] = {
-    "13-17",
-    "18-24",
-    "25-34",
-    "35-44",
-    "45-54",
-    "55-64",
-    "65+"
-};
-int histSize = sizeof(counts) / sizeof(int);
+    // histogram data
+    int counts[]            = {3, 12, 28, 42, 35, 19, 8, 3};
+    std::string binLabels[] = {"0-10", "11-20", "21-30", "31-40",
+                               "41-50", "51-60", "61-70", "71-80"};
+    int histSize = sizeof(counts) / sizeof(int);
 
     int currentChart = 0;
 
-    // helper: full clear and redraw
     auto redraw = [&](){
         sf::Image canvas({800u, 600u}, sf::Color::White);
         tx.clear(sf::Color::Transparent);
@@ -58,11 +53,11 @@ int histSize = sizeof(counts) / sizeof(int);
         printf("drawing chart %d\n", currentChart);
 
         if      (currentChart == 0) linegraph  (canvas, tx, x, y, sizeof(x)/sizeof(int));
-        else if (currentChart == 1) bargraph   (canvas, tx, values, labels, sampleSize);
-        else if (currentChart == 2) piechart   (canvas, tx, values, labels, sampleSize);
+        else if (currentChart == 1) bargraph   (canvas, tx, barValues,   barLabels,   barSize);
+        else if (currentChart == 2) piechart   (canvas, tx, pieValues,   pieLabels,   pieSize);
         else if (currentChart == 3) scatterplot(canvas, tx, Sx, Sy, sizeof(Sx)/sizeof(int));
-        else if (currentChart == 4) donutchart (canvas, tx, values, labels, sampleSize);
-        else if (currentChart == 5) histogram  (canvas, tx, counts, binLabels, histSize);
+        else if (currentChart == 4) donutchart (canvas, tx, donutValues, donutLabels, donutSize);
+        else if (currentChart == 5) histogram  (canvas, tx, counts,      binLabels,   histSize);
 
         texture.update(canvas);
     };

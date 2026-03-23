@@ -6,14 +6,35 @@
 #define M_PI 3.14159265358979323846f
 static const int ARC_STEPS = 120;
 
-static sf::Color sliceColors[] = {
-    sf::Color(220, 80,  80), sf::Color(80,  150, 220), sf::Color(80,  200, 100),
-    sf::Color(240, 180, 50), sf::Color(180, 80,  200), sf::Color(240, 130, 50),
-    sf::Color(80,  210, 210), sf::Color(200, 100, 140),
-};
-static const int NUM_COLORS = sizeof(sliceColors) / sizeof(sf::Color);
+// Converts HSL to sf::Color (h: 0-360, s: 0-1, l: 0-1)
+static sf::Color hslToColor(float h, float s, float l) {
+    float c = (1.0f - std::fabs(2.0f * l - 1.0f)) * s;
+    float x = c * (1.0f - std::fabs(std::fmod(h / 60.0f, 2.0f) - 1.0f));
+    float m = l - c / 2.0f;
 
-// fills outer wedge via §2.4 scanline, punches hole via §2.6 boundary-fill, restores ring via §2.7 flood-fill
+    float r, g, b;
+    if      (h < 60)  { r = c; g = x; b = 0; }
+    else if (h < 120) { r = x; g = c; b = 0; }
+    else if (h < 180) { r = 0; g = c; b = x; }
+    else if (h < 240) { r = 0; g = x; b = c; }
+    else if (h < 300) { r = x; g = 0; b = c; }
+    else              { r = c; g = 0; b = x; }
+
+    return sf::Color(
+        (uint8_t)((r + m) * 255),
+        (uint8_t)((g + m) * 255),
+        (uint8_t)((b + m) * 255)
+    );
+}
+
+// Generates a distinct color for slice i out of total slices
+static sf::Color colorForSlice(int i, int total) {
+    float hue        = (360.0f * i) / total;
+    float saturation = 0.65f;
+    float lightness  = 0.55f;
+    return hslToColor(hue, saturation, lightness);
+}
+
 void draw_donut_sector(sf::Image& canvas, int cx, int cy, int outerR, int innerR,
                        float startAngle, float endAngle, sf::Color color) {
     std::vector<sf::Vector2f> outerPoly;
@@ -22,21 +43,21 @@ void draw_donut_sector(sf::Image& canvas, int cx, int cy, int outerR, int innerR
         float angle = startAngle + ((float)s / ARC_STEPS) * (endAngle - startAngle);
         outerPoly.push_back({cx + std::cos(angle) * outerR, cy + std::sin(angle) * outerR});
     }
-    scanline_fill_polygon(canvas, outerPoly, color); 
+    scanline_fill_polygon(canvas, outerPoly, color);
 
-    draw_circle(canvas, cx, cy, innerR, sf::Color::White, false); 
-    boundary_fill(canvas, cx, cy, sf::Color::White, sf::Color::White); 
+    draw_circle(canvas, cx, cy, innerR, sf::Color::White, false);
+    boundary_fill(canvas, cx, cy, sf::Color::White, sf::Color::White);
 
-    float mid = startAngle + (endAngle - startAngle) * 0.5f;
+    float mid  = startAngle + (endAngle - startAngle) * 0.5f;
     float ringR = (outerR + innerR) * 0.5f;
-    int seedX = cx + (int)(std::cos(mid) * ringR);
-    int seedY = cy + (int)(std::sin(mid) * ringR);
+    int seedX  = cx + (int)(std::cos(mid) * ringR);
+    int seedY  = cy + (int)(std::sin(mid) * ringR);
     if (canvas.getPixel({(unsigned)seedX, (unsigned)seedY}) == sf::Color::White)
-        flood_fill(canvas, seedX, seedY, color, sf::Color::White); 
+        flood_fill(canvas, seedX, seedY, color, sf::Color::White);
 
     float sx1 = cx + std::cos(startAngle) * innerR, sy1 = cy + std::sin(startAngle) * innerR;
     float sx2 = cx + std::cos(startAngle) * outerR, sy2 = cy + std::sin(startAngle) * outerR;
-    draw_line(canvas, (int)sx1, (int)sy1, (int)sx2, (int)sy2, sf::Color::White); 
+    draw_line(canvas, (int)sx1, (int)sy1, (int)sx2, (int)sy2, sf::Color::White);
 }
 
 void donutchart(sf::Image& canvas, sf::RenderTexture& rt, int* values, std::string* labels, int sampleSize) {
@@ -47,12 +68,13 @@ void donutchart(sf::Image& canvas, sf::RenderTexture& rt, int* values, std::stri
     float currentAngle = 0.0f;
     for (int i = 0; i < sampleSize; i++) {
         float sweep = (values[i] / total) * 2.0f * M_PI;
-        draw_donut_sector(canvas, cx, cy, outerR, innerR, currentAngle, currentAngle + sweep, sliceColors[i % NUM_COLORS]);
+        sf::Color color = colorForSlice(i, sampleSize);  
+        draw_donut_sector(canvas, cx, cy, outerR, innerR, currentAngle, currentAngle + sweep, color);
         currentAngle += sweep;
     }
 
-    draw_circle(canvas, cx, cy, outerR, sf::Color::White, false); 
-    draw_circle(canvas, cx, cy, innerR, sf::Color::White, false); 
+    draw_circle(canvas, cx, cy, outerR, sf::Color::White, false);
+    draw_circle(canvas, cx, cy, innerR, sf::Color::White, false);
     draw_circle(canvas, cx, cy, innerR - 1, sf::Color::White, true);
 
     sf::Text centerText(font);
@@ -68,6 +90,7 @@ void donutchart(sf::Image& canvas, sf::RenderTexture& rt, int* values, std::stri
     currentAngle = 0.0f;
 
     for (int i = 0; i < sampleSize; i++) {
+        sf::Color color = colorForSlice(i, sampleSize);  
         float sweep    = (values[i] / total) * 2.0f * M_PI;
         float midAngle = currentAngle + sweep * 0.5f;
         float labelR   = (outerR + innerR) * 0.5f;
@@ -81,7 +104,7 @@ void donutchart(sf::Image& canvas, sf::RenderTexture& rt, int* values, std::stri
         labelText.setPosition({(float)lx - 12, (float)ly - 6});
         rt.draw(labelText);
 
-        draw_rect(canvas, legendX, legendY + i * 22, 14, 14, sliceColors[i % NUM_COLORS], true);
+        draw_rect(canvas, legendX, legendY + i * 22, 14, 14, color, true);
         labelText.setFillColor(sf::Color::Black);
         labelText.setString(labels[i] + " (" + std::to_string(values[i]) + ")");
         labelText.setPosition({(float)legendX + 18, (float)legendY + i * 22});
