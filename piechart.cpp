@@ -6,7 +6,7 @@
 #define M_PI 3.14159265358979323846f
 static const int ARC_STEPS = 120;
 
-static sf::Color sliceColors[] = {
+static sf::Color sliceColors[] = { 
     sf::Color(220, 80,  80), sf::Color(80,  150, 220), sf::Color(80,  200, 100),
     sf::Color(240, 180, 50), sf::Color(180, 80,  200), sf::Color(240, 130, 50),
     sf::Color(80,  210, 210), sf::Color(200, 100, 140),
@@ -50,7 +50,7 @@ void piechart(sf::Image& canvas, sf::RenderTexture& rt, int* values, std::string
     draw_circle(canvas, cx, cy, r, sf::Color::White, false); 
 
     sf::Text labelText(font);
-    labelText.setCharacterSize(13);
+    labelText.setCharacterSize(18);
     int legendX = 30, legendY = 30;
     currentAngle = 0.0f;
 
@@ -62,7 +62,7 @@ void piechart(sf::Image& canvas, sf::RenderTexture& rt, int* values, std::string
 
         char buf[32];
         snprintf(buf, sizeof(buf), "%.1f%%", (values[i] / total) * 100.0f);
-        labelText.setFillColor(sf::Color::White);
+        labelText.setFillColor(sf::Color::Black);
         labelText.setString(buf);
         labelText.setPosition({(float)lx - 12, (float)ly - 6});
         rt.draw(labelText);

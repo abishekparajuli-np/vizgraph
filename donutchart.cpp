@@ -21,7 +21,7 @@ void draw_donut_sector(sf::Image& canvas, int cx, int cy, int outerR, int innerR
     for (int s = 0; s <= ARC_STEPS; s++) {
         float angle = startAngle + ((float)s / ARC_STEPS) * (endAngle - startAngle);
         outerPoly.push_back({cx + std::cos(angle) * outerR, cy + std::sin(angle) * outerR});
-    
+    }
     scanline_fill_polygon(canvas, outerPoly, color); 
 
     draw_circle(canvas, cx, cy, innerR, sf::Color::White, false); 
@@ -53,7 +53,7 @@ void donutchart(sf::Image& canvas, sf::RenderTexture& rt, int* values, std::stri
 
     draw_circle(canvas, cx, cy, outerR, sf::Color::White, false); 
     draw_circle(canvas, cx, cy, innerR, sf::Color::White, false); 
-    draw_circle(canvas, cx, cy, innerR - 1, sf::Color::White, true); 
+    draw_circle(canvas, cx, cy, innerR - 1, sf::Color::White, true);
 
     sf::Text centerText(font);
     centerText.setFillColor(sf::Color::Black);
@@ -63,7 +63,7 @@ void donutchart(sf::Image& canvas, sf::RenderTexture& rt, int* values, std::stri
     rt.draw(centerText);
 
     sf::Text labelText(font);
-    labelText.setCharacterSize(13);
+    labelText.setCharacterSize(18);
     int legendX = 30, legendY = 30;
     currentAngle = 0.0f;
 
@@ -76,7 +76,7 @@ void donutchart(sf::Image& canvas, sf::RenderTexture& rt, int* values, std::stri
 
         char buf[32];
         snprintf(buf, sizeof(buf), "%.1f%%", (values[i] / total) * 100.0f);
-        labelText.setFillColor(sf::Color::White);
+        labelText.setFillColor(sf::Color::Black);
         labelText.setString(buf);
         labelText.setPosition({(float)lx - 12, (float)ly - 6});
         rt.draw(labelText);
