@@ -36,9 +36,9 @@ int main(){
     }
 
     // donuntchart data
-    int donutValues[]        = {32, 27, 18, 13, 10, 30};
+    int donutValues[]        = {32, 27, 18, 13, 10};
     std::string donutLabels[] = {"Industry", "Transport", "Residential",
-                                 "Commercial","Management" ,"Other"};
+                                 "Commercial","Other"};
     int donutSize = sizeof(donutValues) / sizeof(int);
 
     //histogram data
@@ -99,6 +99,6 @@ void generateNormalIntData(double mean, int n, int* data)
 
     for (int i = 0; i < n; i++)
     {
-        data[i] = static_cast<int>(dist(gen) + 0.5); // rounding to nearest int
+        data[i] = static_cast<int>(dist(gen) + 0.5);
     }
 }
